@@ -2,8 +2,23 @@
 import "./styles.css"
 
 async function fetchData(url) {
-    const response = await fetch(url);
-    const json = await response.json();
+    try {
+        const response = await fetch(url);
+
+        // check if the HTTP get request return status
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const weatherData = await response.json();
+
+        return weatherData;
+    } catch (error) {
+        console.log(`Got this error: ${error}`);
+
+        // later base on this to display weather search result
+        return null
+    }
     
     return json;
 }
@@ -21,6 +36,20 @@ async function processJSON(url) {
     }
 }
 
-const endPt = 'https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/hanoi?key=6NQ57A6JYZH9425ZWCTGC9ZEZ'
 
-console.log( await processJSON(endPt) );
+const locationForm = document.querySelector('form');
+const locationInput = document.querySelector('#location-input');
+
+locationForm.addEventListener('submit', (event) => {
+    // prevent default behavior of a form
+    event.preventDefault();
+
+    // read in the input value
+    const location = locationInput.value.trim();
+
+    const endPt = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${location}?key=6NQ57A6JYZH9425ZWCTGC9ZEZ`;
+
+    processJSON(endPt).then((resultObject) => {
+        console.log( resultObject.location );
+    });
+});
