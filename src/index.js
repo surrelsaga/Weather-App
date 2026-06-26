@@ -1,6 +1,9 @@
 // import css then webpack later will rebundle into JS code so the dist/ (bundled code) will only have html and js
 import "./styles.css"
 
+const weatherResult = document.querySelector('.weather-result');
+const loadingDisplay = document.querySelector('#loading');
+
 async function fetchData(url) {
     try {
         const response = await fetch(url);
@@ -19,20 +22,40 @@ async function fetchData(url) {
         // later base on this to display weather search result
         return null
     }
-    
-    return json;
 }
 
-async function processJSON(url) {
-    const json = await fetchData(url);
-    const tempC = (json.currentConditions.temp - 32) * 5 / 9;
+async function processData(url) {
+    loadingDisplay.style.display = 'block';
 
-    return {
-        "location": json.address,
-        "tempF": json.currentConditions.temp,
-        "tempC": tempC,
-        "weatherDesc": json.currentConditions.conditions,
-        "icon": json.currentConditions.icon
+    try {
+        const weatherData = await fetchData(url);
+
+        // from fetchData above, we return null if there's an error
+        if(!weatherData) {
+            console.log('Display error (could not fetch weather data) on screen');
+            weatherResult.innerHTML = `
+            <div class="weather-card">
+                <p>Could not find the location. Try again!</p>
+            </div>
+            `;
+            
+            return;
+        }
+        
+        // if there's no error, then return an object 
+        // containing all data that need to be displayed
+        const tempC = (weatherData.currentConditions.temp - 32) * 5 / 9;
+
+        return {
+            "location": weatherData.address,
+            "tempF": weatherData.currentConditions.temp,
+            "tempC": tempC,
+            "weatherDesc": weatherData.currentConditions.conditions,
+            "icon": weatherData.currentConditions.icon
+        }
+
+    } finally {
+        loadingDisplay.style.display = 'none';
     }
 }
 
@@ -49,7 +72,7 @@ locationForm.addEventListener('submit', (event) => {
 
     const endPt = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${location}?key=6NQ57A6JYZH9425ZWCTGC9ZEZ`;
 
-    processJSON(endPt).then((resultObject) => {
+    processData(endPt).then((resultObject) => {
         console.log( resultObject.location );
     });
 });
