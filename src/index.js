@@ -4,7 +4,9 @@ import "./styles.css"
 const weatherResult = document.querySelector('.weather-result');
 const loadingDisplay = document.querySelector('#loading');
 
-async function fetchData(url) {
+async function fetchData(location) {
+    const url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${location}?key=6NQ57A6JYZH9425ZWCTGC9ZEZ`;
+
     try {
         const response = await fetch(url);
 
@@ -24,11 +26,11 @@ async function fetchData(url) {
     }
 }
 
-async function processData(url) {
+async function processData(location) {
     loadingDisplay.style.display = 'block';
 
     try {
-        const weatherData = await fetchData(url);
+        const weatherData = await fetchData(location);
 
         // from fetchData above, we return null if there's an error
         if(!weatherData) {
@@ -60,32 +62,63 @@ async function processData(url) {
     }
 }
 
-async function displayData(url) {
-    const dataObject = await processData(url);
+async function displayData(location, unit) {
+    try {
+        const dataObject = await processData(location);
 
-    if(dataObject !== undefined) {
-        weatherResult.innerHTML = `
-            <div class="weather-card">
-                <h3>${dataObject.location}</h3>
-                <p>${dataObject["tempC"]}</p>
-                <p>${dataObject.weatherDesc}</p>
-            </div>
-        `;
+        if(dataObject !== undefined) {
+            if(unit === 'C') {
+                weatherResult.innerHTML = `
+                    <div class="weather-card">
+                        <h3>${dataObject.location}</h3>
+                        <p id="temp">${dataObject["tempC"]} °C</p>
+                        <p>${dataObject.weatherDesc}</p>
+                    </div>
+                `;
+            } else if(unit === 'F') {
+                weatherResult.innerHTML = `
+                    <div class="weather-card">
+                        <h3>${dataObject.location}</h3>
+                        <p id="temp">${dataObject["tempF"]} °F</p>
+                        <p>${dataObject.weatherDesc}</p>
+                    </div>
+                `;
+            }
+        }
+    } catch(error) {
+        console.log(error);
     }
 }
 
 
 const locationForm = document.querySelector('form');
 const locationInput = document.querySelector('#location-input');
+const toggleUnitBtn = document.querySelector('#toggle-unit');
+
+let location;
+// by default the unit is celsius
+let currentTempUnit = 'C';
 
 locationForm.addEventListener('submit', (event) => {
     // prevent default behavior of a form
     event.preventDefault();
 
     // read in the input value
-    const location = locationInput.value.trim();
+    location = locationInput.value.trim();
 
-    const endPt = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${location}?key=6NQ57A6JYZH9425ZWCTGC9ZEZ`;
+    displayData(location, currentTempUnit);
+});
 
-    displayData(endPt);
+
+toggleUnitBtn.addEventListener('click', () => {
+    if(currentTempUnit === 'C') {
+        currentTempUnit = 'F';
+    } else if(currentTempUnit === 'F') {
+        currentTempUnit = 'C';
+    }
+
+    const tempDisplay = document.querySelector('#temp');
+    if(tempDisplay) {
+        displayData(location, currentTempUnit);
+    }
 });
