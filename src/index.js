@@ -4,6 +4,32 @@ import "./styles.css"
 const weatherResult = document.querySelector('.weather-result');
 const loadingDisplay = document.querySelector('#loading');
 
+// maps weatherData.icon values to a background css class
+const iconToBgClass = {
+    'clear-day': 'bg-clear',
+    'clear-night': 'bg-night',
+    'partly-cloudy-day': 'bg-cloudy',
+    'partly-cloudy-night': 'bg-night',
+    'cloudy': 'bg-cloudy',
+    'rain': 'bg-rain',
+    'showers-day': 'bg-rain',
+    'showers-night': 'bg-rain',
+    'thunder-rain': 'bg-rain',
+    'snow': 'bg-snow',
+    'snow-showers-day': 'bg-snow',
+    'snow-showers-night': 'bg-snow',
+    'fog': 'bg-fog',
+    'wind': 'bg-cloudy'
+};
+
+function setBackground(icon) {
+    // remove any existing bg-* class, then add the matching one
+    document.body.classList.forEach((cls) => {
+        if (cls.startsWith('bg-')) document.body.classList.remove(cls);
+    });
+    document.body.classList.add(iconToBgClass[icon] || 'bg-default');
+}
+
 async function fetchData(location) {
     const url = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${location}?key=6NQ57A6JYZH9425ZWCTGC9ZEZ`;
 
@@ -67,6 +93,9 @@ async function displayData(location, unit) {
         const dataObject = await processData(location);
 
         if(dataObject !== undefined) {
+            // change background based on weather
+            setBackground(dataObject.icon);
+
             if(unit === 'C') {
                 weatherResult.innerHTML = `
                     <div class="weather-card">
