@@ -44,7 +44,8 @@ async function processData(url) {
         
         // if there's no error, then return an object 
         // containing all data that need to be displayed
-        const tempC = (weatherData.currentConditions.temp - 32) * 5 / 9;
+        let tempC = (weatherData.currentConditions.temp - 32) * 5 / 9;
+        tempC = tempC.toFixed(1); //round up to 1 decimal place
 
         return {
             "location": weatherData.address,
@@ -56,6 +57,20 @@ async function processData(url) {
 
     } finally {
         loadingDisplay.style.display = 'none';
+    }
+}
+
+async function displayData(url) {
+    const dataObject = await processData(url);
+
+    if(dataObject !== undefined) {
+        weatherResult.innerHTML = `
+            <div class="weather-card">
+                <h3>${dataObject.location}</h3>
+                <p>${dataObject["tempC"]}</p>
+                <p>${dataObject.weatherDesc}</p>
+            </div>
+        `;
     }
 }
 
@@ -72,7 +87,5 @@ locationForm.addEventListener('submit', (event) => {
 
     const endPt = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${location}?key=6NQ57A6JYZH9425ZWCTGC9ZEZ`;
 
-    processData(endPt).then((resultObject) => {
-        console.log( resultObject.location );
-    });
+    displayData(endPt);
 });
