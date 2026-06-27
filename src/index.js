@@ -88,45 +88,43 @@ async function processData(location) {
     }
 }
 
-async function displayData(location, unit) {
+function renderData(dataObject, unit) {
+    // if data does not exist
+    if(!dataObject) return;
+    // change bg color
+    setBackground(dataObject.icon);
+
+    const temp = (unit === 'C') ? `${dataObject.tempC} °C` : `${dataObject.tempF} °F`;
+
+    // render on the page
+    weatherResult.innerHTML = `
+        <div class="weather-card">
+            <h3>${dataObject.location}</h3>
+            <p id="temp">${temp}</p>
+            <p>${dataObject.weatherDesc}</p>
+        </div>
+    `;
+}
+
+async function loadData(location) {
     try {
         const dataObject = await processData(location);
-
-        if(dataObject !== undefined) {
-            // change background based on weather
-            setBackground(dataObject.icon);
-
-            if(unit === 'C') {
-                weatherResult.innerHTML = `
-                    <div class="weather-card">
-                        <h3>${dataObject.location}</h3>
-                        <p id="temp">${dataObject["tempC"]} °C</p>
-                        <p>${dataObject.weatherDesc}</p>
-                    </div>
-                `;
-            } else if(unit === 'F') {
-                weatherResult.innerHTML = `
-                    <div class="weather-card">
-                        <h3>${dataObject.location}</h3>
-                        <p id="temp">${dataObject["tempF"]} °F</p>
-                        <p>${dataObject.weatherDesc}</p>
-                    </div>
-                `;
-            }
+        if(!dataObject !== undefined) {
+            currentData = dataObject;
+            renderData(currentData, currentTempUnit);
         }
-    } catch(error) {
+    } catch (error) {
         console.log(error);
     }
 }
-
 
 const locationForm = document.querySelector('form');
 const locationInput = document.querySelector('#location-input');
 const toggleUnitBtn = document.querySelector('#toggle-unit');
 
 let location;
-// by default the unit is celsius
-let currentTempUnit = 'C';
+let currentTempUnit = 'C'; // by default the unit is celsius
+let currentData; // to store current loaded data
 
 locationForm.addEventListener('submit', (event) => {
     // prevent default behavior of a form
@@ -135,7 +133,7 @@ locationForm.addEventListener('submit', (event) => {
     // read in the input value
     location = locationInput.value.trim();
 
-    displayData(location, currentTempUnit);
+    loadData(location);
 });
 
 
@@ -148,6 +146,6 @@ toggleUnitBtn.addEventListener('click', () => {
 
     const tempDisplay = document.querySelector('#temp');
     if(tempDisplay) {
-        displayData(location, currentTempUnit);
+        renderData(currentData, currentTempUnit);
     }
 });
